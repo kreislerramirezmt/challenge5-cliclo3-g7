@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computadores-Clientes-Mensajes</title>
+    <link rel="stylesheet" href="/public/assets/plugins/Sweetalert2/11.1.7/css/sweetalert2.min.css">
+    <link rel="stylesheet" href="/public/assets/plugins/SemanticUICSS/2.4.1/semantic.min.css">
+    <script type="text/javascript" src="/public/assets/plugins/JQuery/3.6.0/js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="/public/assets/plugins/Sweetalert2/11.1.7/js/sweetalert2.min.js"></script>
+    <script type="text/javascript" src="/public/assets/plugins/SemanticUICSS/2.4.1/semantic.min.js"></script>
+    <script type="text/javascript"
+            src="/public/assets/plugins/BlueimpJavaScriptTemplates/3.20.0/js/tmpl.min.js"></script>
+    <script type="text/javascript" src="/public/assets/plugins/Navigo/8.11.1/navigo.js"></script>
+    <script type="text/javascript" src="/public/assets/js/main.js"></script>
+    <style>
+        .d-none{
+            display: none!important;
+        }
+        .text-aling-center{
+            text-align: center!important;
+        }
+    </style>
+</head>
+<body>
+<div class="ui container">
+    <div style="display: none;" class="ui segment padded text-aling-center unauthenticated">
+        <h2 class="ui icon header">
+            <i class="settings icon"></i>
+            <div class="content">¡Bienvenido!
+            </div>
+        </h2>
+        <div class="ui centered">
+            <a href="/oauth2/authorization/github" class="ui green button">
+                <i class="github icon"></i>
+                Login with GitHub
+            </a>
+        </div>
+
+    </div>
+    <div style="" class="ui attached stackable menu authenticated">
+        <div class="ui container">
+            <a href="/category" class="item" data-navigo>
+                <i class="hashtag icon"></i> Categorias
+            </a>
+            <a href="/computer" class="item" data-navigo>
+                <i class="computer icon"></i> Computadores
+            </a>
+            <a href="/client" class="item" data-navigo>
+                <i class="users icon"></i> Clientes
+            </a>
+            <a href="/message" class="item" data-navigo>
+                <i class="comment alternate outline icon"></i> Mensajes
+            </a>
+            <a href="/reservaciones" class="item" data-navigo>
+                <i class="calendar alternate outline icon"></i> Reservaciones
+            </a>
+            <div class="right item">
+                <div class="ui"><i class="user circle icon"></i>@<span id="userName"></span><a href="/logout" class="circular red ui icon button">
+                    <i class="icon sign out alternate"></i> Logout
+                </a></div>
+            </div>
+        </div>
+    </div>
+    <div style="" class="ui segment authenticated">
+        <p id="temp"></p>
+    </div>
+</div>
+</body>
+<script type="text/x-tmpl" id="tmpl-tableCategory">
+{% const color = {
+        colorsList:[
+            'red',
+            'orange',
+            'yellow',
+            'olive',
+            'green',
+            'teal',
+            'blue',
+            'violet',
+            'purple',
+            'pink',
+            'brown',
+            'grey',
+            'black'],
+        random: ()=>{
+            return color.colorsList[Math.floor(Math.random() * (color.colorsList.length - 0)) + 0];
+        }
+    }; %}
+<div class="ui grid">
+            <div class="one column row">
+                <div class="right floated column">
+                <div class="ui right pointing green basic label"><i class="info icon"></i>Recuerda refrescar la tabla...</div>
+                    <div class="ui right floated small primary labeled icon button" id="btn-crear-category"><i class="{%=o.option.icon%} icon"></i>{%=o.option.title%}</div>
+                <a href="#/category" class="ui right floated small primary labeled icon button"><i class="redo icon"></i>Actualizar</a>
+                </div>
+            </div>
+        </div>
+        <table class="ui celled table">
+            <thead>
+            <tr>
+            {% for (var i=0; i<o.thead.length; i++) { %}
+                <th>{%=o.thead[i]%}</th>
+            {% } %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for (var i=0; i<o.data.items.length; i++) { %}
+            <tr>
+                <td class="collapsing">
+                    {%=o.data.items[i].name%}
+                </td>
+                <td>
+                {% if (o.data.items[i].computers.length==0) { %}
+                Esta categoria no tiene computadores.
+                {% } %}
+                {% for (var icat=0; icat<o.data.items[i].computers.length; icat++) { %}
+                <a class="ui {%print(color.random());%} label">
+                  <i class="computer icon"></i>
+                  {%=o.data.items[i].computers[icat].name%}
+                </a>
+                {% } %}
+                </td>
+                <td>
+                    <div class="tiny ui buttons">
+            <a class="ui negative button" href="#/category/{%=o.data.items[i].id%}/delete">Eliminar</a>
+            <div class="or" data-text="ó"></div>
+            <a class="ui blue button" data-jsoncategory-{%=o.data.items[i].id%}='{%print(JSON.stringify(o.data.items[i]));%}' href="#/category/{%=o.data.items[i].id%}/edit">Editar</a>
+                </td>
+            </tr>
+            {% } %}
+            </tbody>
+            {% if (o.data.items.length==0) { %}
+            <tfoot class="full-width">
+    <tr>
+      <th colspan="3">
+        No hay registros
+      </th>
+    </tr>
+  </tfoot>
+            {% } %}
+        </table>
+</script>
+<script type="text/x-tmpl" id="tmpl-tableComputer">
+<div class="ui grid">
+            <div class="one column row">
+                <div class="right floated column">
+                <div class="ui right pointing green basic label"><i class="info icon"></i>Recuerda refrescar la tabla...</div>
+                    <div class="ui right floated small primary labeled icon button" id="btn-crear-computer"><i class="{%=o.option.icon%} icon"></i>{%=o.option.title%}</div>
+                <a href="#/computer" class="ui right floated small primary labeled icon button"><i class="redo icon"></i>Actualizar</a>
+                </div>
+            </div>
+        </div>
+        <table class="ui celled table">
+            <thead>
+            <tr>
+            {% for (var i=0; i<o.thead.length; i++) { %}
+                <th>{%=o.thead[i]%}</th>
+            {% } %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for (var i=0; i<o.data.items.length; i++) { %}
+            <tr>
+                <td class="collapsing">
+                    {%=o.data.items[i].name%}
+                </td>
+                <td>{%=o.data.items[i].year%}</td>
+                <td>{%=o.data.items[i].brand%}</td>
+                <td>{%=o.data.items[i].description%}</td>
+                <td>
+                {% if (o.data.items[i].category!==null) { %}
+                {%=o.data.items[i].category.name%}
+                {% } else { %}
+                No tiene categoria asignada.
+                {% } %}
+                </td>
+                <td>
+                    <div class="tiny ui buttons">
+            <a class="ui negative button" href="#/computer/{%=o.data.items[i].id%}/delete">Eliminar</a>
+            <div class="or" data-text="ó"></div>
+            <a class="ui blue button" data-jsoncomputer-{%=o.data.items[i].id%}='{%print(JSON.stringify(o.data.items[i]));%}' href="#/computer/{%=o.data.items[i].id%}/edit">Editar</a>
+                </td>
+            </tr>
+            {% } %}
+            </tbody>
+            {% if (o.data.items.length==0) { %}
+            <tfoot class="full-width">
+    <tr>
+      <th colspan="6">
+        No hay registros
+      </th>
+    </tr>
+  </tfoot>
+            {% } %}
+        </table>
+</script>
+<script type="text/x-tmpl" id="tmpl-tableClient">
+<div class="ui grid">
+            <div class="one column row">
+                <div class="right floated column">
+                <div class="ui right pointing green basic label"><i class="info icon"></i>Recuerda refrescar la tabla...</div>
+                    <div class="ui right floated small primary labeled icon button" id="btn-crear-client"><i class="{%=o.option.icon%} icon"></i>{%=o.option.title%}</div>
+                <a href="#/client" class="ui right floated small primary labeled icon button"><i class="redo icon"></i>Actualizar</a>
+                </div>
+            </div>
+        </div>
+        <table class="ui celled table">
+            <thead>
+            <tr>
+            {% for (var i=0; i<o.thead.length; i++) { %}
+                <th>{%=o.thead[i]%}</th>
+            {% } %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for (var i=0; i<o.data.items.length; i++) { %}
+            <tr>
+                <td class="collapsing">{%=o.data.items[i].name%}</td>
+                <td>{%=o.data.items[i].email%}</td>
+                <td>{%=o.data.items[i].age%}</td>
+                <td>
+                    <div class="tiny ui buttons">
+            <a class="ui negative button" href="#/client/{%=o.data.items[i].idClient%}/delete">Eliminar</a>
+            <div class="or" data-text="ó"></div>
+            <a class="ui blue button" data-jsonclient-{%=o.data.items[i].idClient%}='{%print(JSON.stringify(o.data.items[i]));%}' href="#/client/{%=o.data.items[i].idClient%}/edit">Editar</a>
+                </td>
+            </tr>
+            {% } %}
+            </tbody>
+            {% if (o.data.items.length==0) { %}
+            <tfoot class="full-width">
+    <tr>
+      <th colspan="4">
+        No hay registros
+      </th>
+    </tr>
+  </tfoot>
+            {% } %}
+        </table>
+</script>
+<script type="text/x-tmpl" id="tmpl-tableMessage">
+<div class="ui grid">
+            <div class="one column row">
+                <div class="right floated column">
+                <div class="ui right pointing green basic label"><i class="info icon"></i>Recuerda refrescar la tabla...</div>
+                 <div class="ui right floated small primary labeled icon button" id="btn-crear-message"><i class="{%=o.option.icon%} icon"></i>{%=o.option.title%}</div>
+                <a href="#/message" class="ui right floated small primary labeled icon button"><i class="redo icon"></i>Actualizar</a>
+                </div>
+            </div>
+        </div>
+        <table class="ui celled table">
+            <thead>
+            <tr>
+            {% for (var i=0; i<o.thead.length; i++) { %}
+                <th>{%=o.thead[i]%}</th>
+            {% } %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for (var i=0; i<o.data.items.length; i++) { %}
+            <tr>
+                <td class="collapsing">{%=o.data.items[i].messageText%}</td>
+                <td>{%=(o.data.items[i].client===null)?'Cliente no existe o fue eliminado.':o.data.items[i].client.name%}</td>
+                <td>{%=(o.data.items[i].computer===null)?'Computador no existe o fue eliminado.':o.data.items[i].computer.name%}</td>
+                <td>
+                    <div class="tiny ui buttons">
+            <a class="ui negative button" href="#/message/{%=o.data.items[i].idMessage%}/delete">Eliminar</a>
+            <div class="or" data-text="ó"></div>
+            <a class="ui blue button" data-jsonmensaje-{%=o.data.items[i].idMessage%}='{%print(JSON.stringify(o.data.items[i]));%}' href="#/message/{%=o.data.items[i].idMessage%}/edit">Editar</a>
+                </td>
+            </tr>
+            {% } %}
+            </tbody>
+            {% if (o.data.items.length==0) { %}
+            <tfoot class="full-width">
+    <tr>
+      <th colspan="4">
+        No hay registros
+      </th>
+    </tr>
+  </tfoot>
+            {% } %}
+        </table>
+</script>
+<script type="text/x-tmpl" id="tmpl-tableReservaciones">
+<div class="ui grid">
+            <div class="one column row">
+                <div class="right floated column">
+                <div class="ui right pointing green basic label"><i class="info icon"></i>Recuerda refrescar la tabla...</div>
+                 <div class="ui right floated small primary labeled icon button" id="btn-crear-reservaciones"><i class="{%=o.option.icon%} icon"></i>{%=o.option.title%}</div>
+                <a href="#/reservaciones" class="ui right floated small primary labeled icon button"><i class="redo icon"></i>Actualizar</a>
+                </div>
+            </div>
+        </div>
+        <table class="ui celled table">
+            <thead>
+            <tr>
+            {% for (var i=0; i<o.thead.length; i++) { %}
+                <th>{%=o.thead[i]%}</th>
+            {% } %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for (var i=0; i<o.data.items.length; i++) { %}
+            <tr>
+                <td class="collapsing">{%=o.data.items[i].startDate%}</td>
+                <td>{%=o.data.items[i].devolutionDate%}</td>
+                <td>{%=(o.data.items[i].client===null)?'Cliente no existe o fue eliminado.':o.data.items[i].client.name%}</td>
+                <td>{%=(o.data.items[i].computer===null)?'Computador no existe o fue eliminado.':o.data.items[i].computer.name%}</td>
+                <td>
+                    <div class="tiny ui buttons">
+            <a class="ui negative button" href="#/reservaciones/{%=o.data.items[i].idReservation%}/delete">Eliminar</a>
+            <div class="or" data-text="ó"></div>
+            <a class="ui blue button" data-jsonreservas-{%=o.data.items[i].idReservation%}='{%print(JSON.stringify(o.data.items[i]));%}' href="#/reservaciones/{%=o.data.items[i].idReservation%}/edit">Editar</a>
+                </td>
+            </tr>
+            {% } %}
+            </tbody>
+            {% if (o.data.items.length==0) { %}
+            <tfoot class="full-width">
+    <tr>
+      <th colspan="5">
+        No hay registros
+      </th>
+    </tr>
+  </tfoot>
+            {% } %}
+        </table>
+</script>
+</html>
