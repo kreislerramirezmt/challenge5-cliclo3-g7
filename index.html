@@ -56,6 +56,9 @@
             <a href="/reservaciones" class="item" data-navigo>
                 <i class="calendar alternate outline icon"></i> Reservaciones
             </a>
+            <a href="/more" class="item" data-navigo>
+                <i class="grid layout icon"></i> Más
+            </a>
             <div class="right item">
                 <div class="ui"><i class="user circle icon"></i>@<span id="userName"></span><a href="/logout" class="circular red ui icon button">
                     <i class="icon sign out alternate"></i> Logout
@@ -68,6 +71,93 @@
     </div>
 </div>
 </body>
+<script type="text/x-tmpl" id="tmpl-report-dates">
+<div class="ui grid">
+            <div class="one column row">
+                <div class="right floated column">
+                <div class="ui right pointing green basic label"><i class="info icon"></i>Recuerda refrescar la tabla...</div>
+                <div class="ui action input">
+  <input type="date">
+  <input type="date">
+  <div class="ui button">Consultar por fecha</div>
+</div>
+                 <div class="ui right floated small primary labeled icon button" id="btn-crear-message"><i class="{%=o.option.icon%} icon"></i>{%=o.option.title%}</div>
+                 <a href="#/message" class="ui right floated small primary labeled icon button"><i class="redo icon"></i>Actualizar</a>
+                </div>
+            </div>
+        </div>
+        <table class="ui celled table">
+            <thead>
+            <tr>
+            {% for (var i=0; i<o.thead.length; i++) { %}
+                <th>{%=o.thead[i]%}</th>
+            {% } %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for (var i=0; i<o.data.items.length; i++) { %}
+            <tr>
+                <td class="collapsing">{%=o.data.items[i].messageText%}</td>
+                <td>{%=(o.data.items[i].client===null)?'Cliente no existe o fue eliminado.':o.data.items[i].client.name%}</td>
+                <td>{%=(o.data.items[i].computer===null)?'Computador no existe o fue eliminado.':o.data.items[i].computer.name%}</td>
+                <td>
+                    <div class="tiny ui buttons">
+            <a class="ui negative button" href="#/message/{%=o.data.items[i].idMessage%}/delete">Eliminar</a>
+            <div class="or" data-text="ó"></div>
+            <a class="ui blue button" data-jsonmensaje-{%=o.data.items[i].idMessage%}='{%print(JSON.stringify(o.data.items[i]));%}' href="#/message/{%=o.data.items[i].idMessage%}/edit">Editar</a>
+                </td>
+            </tr>
+            {% } %}
+            </tbody>
+            {% if (o.data.items.length==0) { %}
+            <tfoot class="full-width">
+    <tr>
+      <th colspan="4">
+        No hay registros
+      </th>
+    </tr>
+  </tfoot>
+            {% } %}
+        </table>
+</script>
+<script type="text/x-tmpl" id="tmpl-ComvsCan">
+    <div class="ui centered card">
+  <div class="content">
+    <a class="header">Conteo de Reservas completadas vs canceladas</a>
+  </div>
+  <div class="extra content">
+                <div class="ui compact menu">
+  <button class="item ui button"><i class="icon green check"></i> Completadas <div class="floating ui green label">{%=o.items.completed%}</div>
+  </button>
+  <button class="item ui button"><i class="icon red ban"></i> Canceladas <div class="floating ui red label">{%=o.items.cancelled%}</div>
+  </button>
+</div>
+</div>
+</script>
+<script type="text/x-tmpl" id="tmpl-moreInformation">
+<div class="ui segments">
+{% if (o.items.length==0) { %}
+   <div class="ui segment">
+    <p>
+    <div class="ui green label"><i class="info icon"></i><a class="detail"></a> No Hay Mejores clientes.</div>
+   </p>
+  </div>
+{% } else { %}
+  <div class="ui segment">
+    <p>Top Mejores clientes</p>
+  </div>
+  <div class="ui segments">
+  {% for (var i=0; i<o.items.length; i++) { %}
+  <div class="ui segment">
+      <p><a class="ui {%=(i==0)?'green':'grey'%} circular label">#{%=i+1%}</a> {%=o.items[i].client.name%}
+      <div class="ui {%=(i==0)?'green':'grey'%} label"><i class="calendar alternate outline icon"></i> {%=o.items[i].total%} <a class="detail">Reservas</a> </div>
+      </p>
+  </div>
+  {% } %}
+</div>
+{% } %}
+</div>
+</script>
 <script type="text/x-tmpl" id="tmpl-tableCategory">
 {% const color = {
         colorsList:[
@@ -289,6 +379,11 @@
             <div class="one column row">
                 <div class="right floated column">
                 <div class="ui right pointing green basic label"><i class="info icon"></i>Recuerda refrescar la tabla...</div>
+                <div class="ui mini input">
+  <input id="inicio-reservaciones" type="date">
+  <input id="fin-reservaciones" type="date">
+  <div class="ui teal icon labeled small button" id="btn-buscar-x-fecha"><i class="search icon"></i>Consultar por fecha</div>
+</div>
                  <div class="ui right floated small primary labeled icon button" id="btn-crear-reservaciones"><i class="{%=o.option.icon%} icon"></i>{%=o.option.title%}</div>
                 <a href="#/reservaciones" class="ui right floated small primary labeled icon button"><i class="redo icon"></i>Actualizar</a>
                 </div>

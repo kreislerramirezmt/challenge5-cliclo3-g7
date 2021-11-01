@@ -1,9 +1,7 @@
 window.addEventListener("load", () => {
     const url = {
         base_url: {
-            kreisler: `http://${window.location.host}`,
-            david: '',
-            jhon: ''
+            kreisler: `http://${window.location.host}`
         },
         api: () => {
             return `${url.base_url.kreisler}/api/`;
@@ -42,7 +40,6 @@ window.addEventListener("load", () => {
             return JSON.parse(jsonAtributo);
         }
     }
-    console.log(url.base_url.kreisler);
     //const dummyTarget = document.getElementById('temp');
     const Toast = Swal.mixin({
         toast: true,
@@ -137,15 +134,15 @@ window.addEventListener("load", () => {
     };
     let getStatusSelect = (id = false) => {
         const content = [
-            {id: 'created', name: 'created'},
-            {id: 'completed', name: 'completed'},
-            {id: 'cancelled', name: 'cancelled'}].map((item) => {
+            {id: 'created', name: 'Creado'},
+            {id: 'completed', name: 'Completado'},
+            {id: 'cancelled', name: 'Cancelado'}].map((item) => {
             return $(`<option value="${item.id}">${item.name}</option>`);
         });
+        $("#status-id-select").html(content);
         if (id) {
             $("#status-id-select").val(id);
         }
-        $("#status-id-select").html(content);
     };
     let drawTable = (thead, data, option = {icon: '', title: '', template: ''}) => {
         o = {thead: thead, data: data, option: option};
@@ -235,6 +232,78 @@ window.addEventListener("load", () => {
             }
         });
     };
+    let btnloadreturn=()=>{
+        $(`#btn-buscar-x-fecha`).on({
+            click: function () {
+                const inicioreservaciones = $('#inicio-reservaciones').val();
+                const finreservaciones = $('#fin-reservaciones').val();
+                if (inicioreservaciones!=="" && finreservaciones!==""){
+                    let fechaInicio = new Date(inicioreservaciones);
+                    let fechaFin = new Date(finreservaciones);
+                    let diferenciaEntreFechas = fechaFin - fechaInicio;
+                    if (diferenciaEntreFechas<0){
+                        Toast.fire(`La fecha inicio debe ser anterior a fecha fin.`);
+                    }
+                }
+                if (inicioreservaciones==="" || finreservaciones==="") {
+                    Toast.fire(`Seleciona una fecha de inicio y fin.`);
+                } else {
+                    $.ajax({
+                        url: url.reservation()+`/report-dates/${inicioreservaciones}/${finreservaciones}`,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (respuesta) {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Cantidad de reservas que se han hecho en un intervalo de tiempo',
+                                text: 'Cantidad: '+respuesta.length,
+                                footer: `Desde ${inicioreservaciones} hasta ${finreservaciones}`
+                            })
+                        },
+                        error: function (xhr, status) {
+                            Toast.fire('Ha sucedido un problema');
+                        },
+                        complete: function (xhr, status) {
+                            //btnloadreturn();
+                    }});
+                }
+            }
+        });
+    };
+    let drawMore=()=>{
+        $("#temp").html(`<div id="report-dates"></div><div id="Topmejoresclientes"></div><div id="ComvsCan"></div>`);
+        $("#ComvsCan").html(tmpl('tmpl-ComvsCan',{items:""}));
+        Toast.fire({
+            icon: 'success',
+            title: 'Cargando mas informacion...'
+        });
+        $.ajax({
+            url: url.reservation() + '/report-clients',
+            type: 'GET',
+            dataType: 'json',
+            success: function (respuesta) {
+                $("#Topmejoresclientes").html(tmpl('tmpl-moreInformation',{items:respuesta}));
+            },
+            error: function (xhr, status) {
+                Toast.fire('Ha sucedido un problema');
+            },
+            complete: function (xhr, status) {
+            }
+        });
+        $.ajax({
+            url: url.reservation() + '/report-status',
+            type: 'GET',
+            dataType: 'json',
+            success: function (respuesta) {
+                $("#ComvsCan").html(tmpl('tmpl-ComvsCan',{items:respuesta}));
+            },
+            error: function (xhr, status) {
+                Toast.fire('Ha sucedido un problema');
+            },
+            complete: function (xhr, status) {
+            }
+        });
+    };
     let drawTableReservaciones=()=>{
         $.ajax({
             url: url.reservation()+'/all',
@@ -264,6 +333,7 @@ window.addEventListener("load", () => {
                         createAndUpdateReservaciones();
                     }
                 });
+                btnloadreturn();
             }
         });
     };
@@ -550,6 +620,12 @@ window.addEventListener("load", () => {
       <label>Fecha de entrega</label>
       <input id="devolutionDate-reservaciones" ${(!x) ? '' : `value="${x['devolutionDate']}"`} type="date">
     </div>
+    <div class="eight wide wide field">
+      <label>Estado</label>
+      <select id="status-id-select" disabled>
+      <option value="">Selecione</option>
+</select>
+    </div>
   </div>
 </div>`,
             confirmButtonText: (!x) ? 'Guardar' : 'Actualizar',
@@ -600,6 +676,11 @@ window.addEventListener("load", () => {
             getClientSelect();
         } else {
             getClientSelect(x['client']['idClient']);
+        }
+        if (x == false) {
+            getStatusSelect();
+        } else {
+            getStatusSelect(x['status']);
         }
         if (x == false) {
             getComputerSelect();
@@ -702,6 +783,11 @@ window.addEventListener("load", () => {
         })
         .on('/', () => {
             router.navigate('/category');
+        })
+        .on('/more',()=>{
+            drawMore();
+        },{
+            already: function (params) { drawMore(); }
         })
         .on('/category',()=>{
             Toast.fire({
